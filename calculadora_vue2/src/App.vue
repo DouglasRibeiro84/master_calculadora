@@ -1,12 +1,9 @@
 <script setup>
-
+import Calculadora_normal from './Calculadora_Normal.vue';
 </script>
 
 <template>
-  <div class="container">
-    
-  </div>
+  <Calculadora_normal />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
