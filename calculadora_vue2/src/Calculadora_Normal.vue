@@ -5,19 +5,107 @@ export default {
     data() {
         return {
             evento: false,
-            numeroAtual: 0,
+            numeroAtual: "",
+            primeiroNumero: null,
+            operacao: null,
+            resultado: null,
         };
     },
+
     methods: {
         alterarEstilo() {
+            this.evento = !this.evento;
         },
+
         adicionarNumero(numero) {
-            console.log('Botão clicado, número:', numero);
-            this.numeroAtual =+ numero ;
+            if (this.resultado !== null) {
+                this.resultado = null;
+                this.numeroAtual = numero.toString();
+            } else {
+                if (numero === ',' && !this.numeroAtual.includes(',')) {
+                    this.numeroAtual += '.';
+                } else if (numero !== ',') {
+                    this.numeroAtual += numero.toString();
+                }
+            }
+        },
+        iniciarCalculo(operacao) {
+            if (this.numeroAtual !== "") {
+                this.primeiroNumero = parseFloat(this.numeroAtual);
+                this.operacao = operacao;
+                this.numeroAtual = "";
+            }
+        },
+        calcular() {
+            if (this.operacao && this.primeiroNumero !== null && this.numeroAtual !== "") {
+                const segundoNumero = parseFloat(this.numeroAtual);
+                let resultado;
+
+                switch (this.operacao) {
+                    case "+":
+                        resultado = this.primeiroNumero + segundoNumero;
+                        break;
+                    case "-":
+                        resultado = this.primeiroNumero - segundoNumero;
+                        break;
+                    case "*":
+                        resultado = this.primeiroNumero * segundoNumero
+                        break;
+                    case "/":
+                        resultado = this.primeiroNumero / segundoNumero
+                        break;
+                    case "%":
+                        resultado = this.primeiroNumero % segundoNumero
+                        break;
+                    default:
+                        resultado = 0;
+                }
+                this.resultado = resultado;
+                this.numeroAtual = resultado.toString();
+                this.operacao = null;
+            }
+        },
+
+        limpar() {
+            this.numeroAtual = "";
+            this.primeiroNumero = null;
+            this.operacao = null;
+            this.resultado = null;
+        },
+
+        inverterSinal() {
+            if (this.numeroAtual !== "") {
+                this.numeroAtual = (parseFloat(this.numeroAtual) * -1).toString();
+            } else if (this.resultado !== null) {
+                this.resultado = this.resultado * -1
+            }
+        },
+        removerUltimoCaractere() {
+            if (this.numeroAtual !== "") {
+                this.numeroAtual = this.numeroAtual.slice(0, -1);
+    
+                if (this.numeroAtual === ",") {
+                    this.numeroAtual = "";
+                }
+            } else if (this.resultado !== null) {
+                this.resultado = this.resultado.slice(0, -1);
+            }
         }
     },
-}
 
+
+    computed: {
+        visorValue() {
+            if (this.resultado !== null) {
+                return this.resultado;
+            } else if (this.primeiroNumero !== null && this.operacao !== null) {
+                return `${this.primeiroNumero} ${this.operacao} ${this.numeroAtual}`;
+            } else {
+                return this.numeroAtual
+            }
+        }
+    }
+}
 
 </script>
 
@@ -28,86 +116,87 @@ export default {
                     <option value="">normal</option>
                     <option value="">Regra de 3</option>
                 </select>
-                <input v-model="evento" @change="alterarEstilo()" class="form-check-input float-end" type="checkbox">
+                <input @change="alterarEstilo()" class="form-check-input float-end" type="checkbox">
             </h1>
         </div>
         <div class="corpo mt-5 p-5">
             <div class="row">
-                <div class="col-4"></div>
-                <div class="col-4">
+                <div class="col-md-4 col-sm-0"></div>
+                <div class="col-md-4 col-sm-12">
                     <div class="card">
                         <div class="card-body p-4">
                             <div class="row p-2">
-                                <input v-model="numeroAtual" class="w-100 p-2 text-end visor" type="number" readonly />
+                                <input :value="visorValue" class="w-100 p-2 text-end visor" type="text" readonly />
                             </div>
                             <div class="row mt-3 d-flex justify-content-center pb-2">
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-danger ps-4 pe-4">ac</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="limpar()" class="btn btn-danger ps-4 pe-4">ac</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4">%</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="iniciarCalculo('%')" class="btn btn-dark ps-4 pe-4">%</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4">/</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="iniciarCalculo('/')" class="btn btn-dark ps-4 pe-4">/</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4"><i class="bi bi-backspace"></i></button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="removerUltimoCaractere" class="btn btn-dark ps-4 pe-4"><i
+                                            class="bi bi-backspace"></i></button>
                                 </div>
                             </div>
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-3 d-flex justify-content-center">
+                                <div class="col-3 d-flex justify-content-center">
                                     <button @click="adicionarNumero(7)" class="btn btn-numbers ps-4 pe-4">7</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button @click="adicionarNumero(8)"  class="btn btn-numbers ps-4 pe-4">8</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(8)" class="btn btn-numbers ps-4 pe-4">8</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">9</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(9)" class="btn btn-numbers ps-4 pe-4">9</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4">x</button>
-                                </div>
-                            </div>
-                            <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">4</button>
-                                </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">5</button>
-                                </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">6</button>
-                                </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4">-</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="iniciarCalculo('*')" class="btn btn-dark ps-4 pe-4">x</button>
                                 </div>
                             </div>
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4"> 1 </button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(4)" class="btn btn-numbers ps-4 pe-4">4</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">2</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(5)" class="btn btn-numbers ps-4 pe-4">5</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">3</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(6)" class="btn btn-numbers ps-4 pe-4">6</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4">+</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="iniciarCalculo('-')" class="btn btn-dark ps-4 pe-4">-</button>
                                 </div>
                             </div>
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-3 pe-3">+/-</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(1)" class="btn btn-numbers ps-4 pe-4"> 1 </button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-numbers ps-4 pe-4">0</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(2)" class="btn btn-numbers ps-4 pe-4">2</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-dark ps-4 pe-4">,</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(3)" class="btn btn-numbers ps-4 pe-4">3</button>
                                 </div>
-                                <div class="col-md-3 d-flex justify-content-center">
-                                    <button class="btn btn-success ps-4 pe-4">=</button>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="iniciarCalculo('+')" class="btn btn-dark ps-4 pe-4">+</button>
+                                </div>
+                            </div>
+                            <div class="row mt-3 d-flex justify-content-center">
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="inverterSinal" class="btn btn-dark ps-3 pe-3">+/-</button>
+                                </div>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(0)" class="btn btn-numbers ps-4 pe-4">0</button>
+                                </div>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="adicionarNumero(',')" class="btn btn-dark ps-4 pe-4">,</button>
+                                </div>
+                                <div class="col-3 d-flex justify-content-center">
+                                    <button @click="calcular" class="btn btn-success ps-4 pe-4">=</button>
                                 </div>
                             </div>
                         </div>
